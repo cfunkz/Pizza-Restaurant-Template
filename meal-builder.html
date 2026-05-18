@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Build your custom pizza meal — Pizza Palace">
+  <title>Meal Builder — Pizza Palace</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Orbitron:wght@700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet"/>
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="assets/css/vendor/bootstrap.min.css"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+
+  <style>
+    /* ── Step number badge ─────────────────────────── */
+    .step-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: white;
+      font-family: var(--font-alt);
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Pizza base selection card ─────────────────── */
+    .pizza-base-card {
+      cursor: pointer;
+      border: 2px solid rgba(220, 38, 38, 0.2);
+      border-radius: var(--radius-card, 0.875rem);
+      overflow: hidden;
+      transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+      position: relative;
+    }
+    .pizza-base-card:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220, 38, 38, 0.12);
+    }
+    .pizza-base-card.selected {
+      border-color: var(--color-primary) !important;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18), 0 6px 18px rgba(220, 38, 38, 0.15) !important;
+    }
+    .pizza-base-card .check-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 2;
+      background: white;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .pizza-base-card.selected .check-badge {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .pizza-base-card .card-meta {
+      padding: 0.45rem 0.5rem;
+      background: white;
+    }
+
+    /* ── Size buttons ──────────────────────────────── */
+    .size-btn {
+      min-width: 72px;
+      border-radius: 0.6rem !important;
+      transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      line-height: 1.3;
+    }
+    .size-btn.chosen {
+      background-color: var(--color-primary) !important;
+      color: white !important;
+      border-color: var(--color-primary) !important;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    }
+
+    /* ── Category filter pills ─────────────────────── */
+    .cat-btn {
+      border-radius: 50px !important;
+      font-size: 0.72rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .cat-btn.chosen {
+      background-color: var(--color-primary) !important;
+      color: white !important;
+      border-color: var(--color-primary) !important;
+    }
+
+    /* ── Toppings list rows ────────────────────────── */
+    .topping-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .topping-row:last-child { border-bottom: none; }
+
+    /* ── Summary card ──────────────────────────────── */
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: var(--font-alt);
+      font-size: 0.76rem;
+      gap: 0.5rem;
+    }
+    .summary-line .label { color: var(--color-text-grey); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .summary-section-label {
+      font-family: var(--font-alt);
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      color: var(--color-primary);
+      margin-bottom: 0.35rem;
+      margin-top: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    /* ── Quantity controls (small variant) ────────── */
+    .qty-btn-sm {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+      border-radius: 4px;
+      border: 1px solid var(--color-primary);
+      background: white;
+      color: var(--color-primary);
+      cursor: pointer;
+      transition: background-color 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qty-btn-sm:hover:not(:disabled) {
+      background: var(--color-primary);
+      color: white;
+    }
+    .qty-btn-sm:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .qty-display {
+      width: 32px;
+      text-align: center;
+      border: 1px solid var(--color-primary);
+      border-radius: 4px;
+      color: var(--color-primary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 1px 2px;
+      user-select: none;
+      background: white;
+      font-family: var(--font-alt);
+    }
+    .qty-row { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Meal item cards (sides/drinks) ────────────── */
+    .meal-item-card {
+      border: 1.5px solid rgba(220,38,38,0.2);
+      border-radius: var(--radius-card, 0.875rem);
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: white;
+    }
+    .meal-item-card:hover { border-color: var(--color-primary); }
+    .meal-item-card.has-qty {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(220,38,38,0.12);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Page Loader -->
+<div id="page-loader" aria-hidden="true">
+  <div class="loader-spinner"></div>
+</div>
+
+<!-- ══════════════════════════════════════ NAVBAR ══ -->
+<nav class="navbar navbar-expand-lg fixed-top bg-white shadow-sm py-3">
+  <div class="container">
+    <a class="navbar-brand font-display text-primary" href="index.html">Pizza Palace</a>
+    <button
+      class="navbar-toggler border-0" type="button"
+      data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+      aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+      <ul class="navbar-nav align-items-center gap-lg-3">
+        <li class="nav-item">
+          <a class="nav-link font-alt fw-semibold" href="index.html">Homepage</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link font-alt fw-semibold" href="about_us.html">About</a>
+        </li>
+        <li class="nav-item dropdown font-alt">
+          <a class="nav-link dropdown-toggle" href="#" id="menuDropdown"
+            role="button" data-bs-toggle="dropdown" aria-expanded="false">Menu</a>
+          <ul class="dropdown-menu" aria-labelledby="menuDropdown">
+            <li><a class="dropdown-item" href="menu.html">Main Menu</a></li>
+            <li><a class="dropdown-item" href="meal-builder.html">Build a Meal</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-1 font-alt fw-semibold"
+            href="cart.html" aria-label="Cart">
+            <i class="bi bi-cart3"></i>
+            <span id="cart-count">Cart (0)</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════ HERO ═════ -->
+<section class="page-hero" aria-label="Meal Builder">
+  <div class="container position-relative z-1">
+    <h1 class="font-display mb-2 fade-in-up">
+      <i class="bi bi-stars me-2" style="font-size:0.85em"></i>Build Your Meal
+    </h1>
+    <p class="fade-in-up" style="--delay:120ms">
+      Pick a base, customise with toppings, then add sides and a drink
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════ MAIN ═════ -->
+<main class="container py-5" role="main">
+  <div class="row g-4 g-lg-5 align-items-start">
+
+    <!-- ══════════ Builder Column ══════════ -->
+    <div class="col-lg-8">
+
+      <!-- STEP 1 ─ Choose Base Pizza -->
+      <div class="section-special p-4 mb-4 fade-in-up" style="--delay:0ms">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">1</span>
+          <h3 class="font-alt text-danger mb-0 fs-5">Choose Your Base Pizza</h3>
+        </div>
+
+        <!-- Category filter pills -->
+        <div class="d-flex flex-wrap gap-2 mb-3" id="cat-filters">
+          <button class="btn btn-sm btn-danger font-alt cat-btn chosen" data-cat="all">All</button>
+          <button class="btn btn-sm btn-outline-danger font-alt cat-btn" data-cat="Classic Pizzas">Classic</button>
+          <button class="btn btn-sm btn-outline-danger font-alt cat-btn" data-cat="Specialty Pizzas">Specialty</button>
+          <button class="btn btn-sm btn-outline-danger font-alt cat-btn" data-cat="Veggie Pizzas">Veggie</button>
+          <button class="btn btn-sm btn-outline-danger font-alt cat-btn" data-cat="Meat Lovers">Meat</button>
+        </div>
+
+        <!-- Pizza card grid -->
+        <div class="row g-3" id="pizza-grid"></div>
+      </div>
+
+      <!-- STEP 2 ─ Choose Size -->
+      <div class="section-special p-4 mb-4 fade-in-up" style="--delay:80ms">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">2</span>
+          <h3 class="font-alt text-danger mb-0 fs-5">Choose Your Size</h3>
+        </div>
+        <div class="d-flex flex-wrap gap-2" id="size-btns">
+          <button class="btn btn-danger font-alt size-btn chosen" data-size="S" data-extra="0">
+            S<br><small class="fw-normal opacity-75">Included</small>
+          </button>
+          <button class="btn btn-outline-danger font-alt size-btn" data-size="M" data-extra="2">
+            M<br><small class="fw-normal opacity-75">+£2.00</small>
+          </button>
+          <button class="btn btn-outline-danger font-alt size-btn" data-size="L" data-extra="4">
+            L<br><small class="fw-normal opacity-75">+£4.00</small>
+          </button>
+          <button class="btn btn-outline-danger font-alt size-btn" data-size="XL" data-extra="6">
+            XL<br><small class="fw-normal opacity-75">+£6.00</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3 ─ Extra Toppings -->
+      <div class="section-special border-sliding-line p-4 mb-4 fade-in-up" style="--delay:160ms">
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <span class="step-badge">3</span>
+          <div class="flex-grow-1">
+            <h3 class="font-alt text-danger mb-0 fs-5">Extra Toppings</h3>
+            <small class="text-muted" style="font-family:var(--font-alt);font-size:0.7rem">
+              Optional — up to 6 extra toppings
+            </small>
+          </div>
+          <span class="badge bg-danger font-alt px-2 py-1" id="topping-badge"
+            style="font-size:0.72rem">0 / 6</span>
+        </div>
+
+        <!-- Toppings in a responsive 2-col grid -->
+        <div class="row gx-4 gy-0 mt-3" id="toppings-list"></div>
+      </div>
+
+      <!-- STEP 4 ─ Make It a Meal -->
+      <div class="section-special border-sliding-line p-4 mb-4 fade-in-up" style="--delay:240ms">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">4</span>
+          <div>
+            <h3 class="font-alt text-danger mb-0 fs-5">Make It a Meal</h3>
+            <small class="text-muted" style="font-family:var(--font-alt);font-size:0.7rem">
+              Optional — add sides &amp; drinks
+            </small>
+          </div>
+        </div>
+
+        <h6 class="font-alt text-danger mb-3" style="font-size:0.8rem;letter-spacing:0.05em">
+          <i class="bi bi-cup-hot me-1"></i>SIDES
+        </h6>
+        <div class="row g-3 mb-4" id="sides-grid"></div>
+
+        <h6 class="font-alt text-danger mb-3" style="font-size:0.8rem;letter-spacing:0.05em">
+          <i class="bi bi-cup-straw me-1"></i>DRINKS
+        </h6>
+        <div class="row g-3" id="drinks-grid"></div>
+      </div>
+
+    </div><!-- /builder col -->
+
+    <!-- ══════════ Summary Column ══════════ -->
+    <div class="col-lg-4">
+      <div class="cart-summary-card p-4" id="meal-summary">
+        <h4 class="font-alt text-danger mb-3 fs-5">
+          <i class="bi bi-receipt me-2"></i>Your Meal
+        </h4>
+
+        <div id="summary-body">
+          <div class="text-center py-4" id="summary-empty">
+            <i class="bi bi-pizza" style="font-size:2.5rem;color:#dee2e6"></i>
+            <p class="text-muted mt-2 mb-0" style="font-family:var(--font-alt);font-size:0.78rem">
+              Select a base pizza to begin
+            </p>
+          </div>
+        </div>
+
+        <hr class="border-danger border-opacity-25 my-3">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <span class="font-alt fw-bold fs-5">Total</span>
+          <span class="font-alt fw-bold text-danger fs-4" id="meal-total">£0.00</span>
+        </div>
+
+        <button class="btn btn-danger w-100 font-alt btn-lg btn-pulse mb-2" id="add-meal-btn">
+          <i class="bi bi-cart-plus me-2"></i>Add to Cart
+        </button>
+        <a href="menu.html" class="btn btn-outline-danger w-100 font-alt">
+          <i class="bi bi-list-ul me-1"></i>Browse Full Menu
+        </a>
+
+        <div class="text-center mt-3">
+          <small class="text-muted font-alt" style="font-size:0.7rem">
+            <i class="bi bi-shield-check me-1 text-success"></i>Secure &nbsp;&bull;&nbsp;
+            <i class="bi bi-truck me-1 text-primary"></i>Free delivery over £25
+          </small>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row -->
+</main>
+
+<!-- ══════════════════════════════════════ FOOTER ═══ -->
+<footer class="bg-light border-top py-5" role="contentinfo">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-5 mb-2">
+        <h4 class="font-display text-primary fs-4 mb-2">Pizza Palace</h4>
+        <p class="text-muted mb-1 small">Serving smiles and slices since 2023.</p>
+        <p class="text-muted small">Crafted with love, one pizza at a time.</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <h6 class="text-primary fw-bold mb-3 font-alt">Follow Us</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-facebook me-1 text-primary"></i>Facebook</a></li>
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-instagram me-1 text-primary"></i>Instagram</a></li>
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-tiktok me-1 text-primary"></i>TikTok</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-md-4">
+        <h6 class="text-primary fw-bold mb-3 font-alt">Quick Links</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-1"><a href="menu.html" class="text-decoration-none text-dark">Main Menu</a></li>
+          <li class="mb-1"><a href="meal-builder.html" class="text-decoration-none text-dark">Build a Meal</a></li>
+          <li class="mb-1"><a href="cart.html" class="text-decoration-none text-dark">Cart</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="text-center text-muted pt-4 small border-top mt-4">
+      © 2025 Pizza Palace. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════ SCRIPTS ══ -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="assets/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="assets/js/products.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/meal-builder.js"></script>
+
+<!-- Builder logic lives in assets/js/meal-builder.js -->
+<!-- Shared utilities (showToast, refreshCartBadge, getCart, saveCart, makeId, CART_KEY) -->
+<!-- are module-scope globals defined in main.js and reused here without duplication.   -->
+
+</body>
+</html>
