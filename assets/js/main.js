@@ -1,87 +1,82 @@
-$(function () {
-  /*─────────────────────────────────────────────────────────
-    Constants & State
-  ─────────────────────────────────────────────────────────*/
-  const CART_KEY    = 'pizzaCart';
-  const VIEW_KEY    = 'menuView';
-  const cashSymbol  = '£';
-  const $win        = $(window);
+/*──────────────────────────────────────────────────────────────────────────────
+  Module-scope utilities
+  Declared here (not inside $(function)) so any page script loaded after
+  main.js can call showToast(), refreshCartBadge(), getCart(), etc. directly.
+──────────────────────────────────────────────────────────────────────────────*/
+const CART_KEY = 'pizzaCart';
 
-  let isListView        = localStorage.getItem(VIEW_KEY) !== 'grid';
+function makeId(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function getCart() {
+  try { return JSON.parse(localStorage.getItem(CART_KEY)) || { items: [] }; }
+  catch { return { items: [] }; }
+}
+
+function saveCart(cart) {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  refreshCartBadge();
+}
+
+function refreshCartBadge() {
+  const total = getCart().items.reduce((s, i) => s + i.quantity, 0);
+  $('#cart-count').text(`Cart (${total})`);
+}
+
+function showToast(msg) {
+  if (!$('#cart-toast').length) {
+    $('body').append(`
+      <div id="cart-toast"
+        class="toast align-items-center text-white bg-danger border-0 position-fixed bottom-0 end-0 m-4"
+        role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999">
+        <div class="d-flex">
+          <div class="toast-body font-alt fw-semibold fs-6"></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>`);
+  }
+  $('#cart-toast .toast-body').text(msg);
+  new bootstrap.Toast($('#cart-toast')[0], { delay: 2500 }).show();
+}
+
+function addToCartStorage(product, qty) {
+  const cart     = getCart();
+  const existing = cart.items.find(i => i.id === product.id);
+  if (existing) {
+    existing.quantity += qty;
+  } else {
+    cart.items.push({
+      id:       product.id,
+      name:     product.name,
+      price:    product.price,
+      image:    product.image,
+      quantity: qty,
+    });
+  }
+  saveCart(cart);
+  showToast(`${qty} × ${product.name} added to cart`);
+}
+
+/*──────────────────────────────────────────────────────────────────────────────
+  DOM-ready: menu rendering, cart page, scroll animations, modals
+──────────────────────────────────────────────────────────────────────────────*/
+$(function () {
+  const cashSymbol = '£';
+  const $win       = $(window);
+
+  let isListView        = localStorage.getItem('menuView') !== 'grid';
   let selectedProductId = localStorage.getItem('selectedProductId') || null;
 
-  /*─────────────────────────────────────────────────────────
-    Product ID Generation (runs only when products.js loaded)
-  ─────────────────────────────────────────────────────────*/
-  function makeId(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  }
-
+  /*── Augment products with IDs (only when products.js is loaded) ──*/
   if (typeof manualProductData !== 'undefined') {
     Object.values(manualProductData).forEach(list =>
       list.forEach(p => { if (!p.id) p.id = makeId(p.name); })
     );
   }
 
-  /*─────────────────────────────────────────────────────────
-    Cart Storage (persists across pages via localStorage)
-  ─────────────────────────────────────────────────────────*/
-  function getCart() {
-    try { return JSON.parse(localStorage.getItem(CART_KEY)) || { items: [] }; }
-    catch { return { items: [] }; }
-  }
-
-  function saveCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    refreshCartBadge();
-  }
-
-  function refreshCartBadge() {
-    const total = getCart().items.reduce((s, i) => s + i.quantity, 0);
-    $('#cart-count').text(`Cart (${total})`);
-  }
-
-  function addToCartStorage(product, qty) {
-    const cart = getCart();
-    const existing = cart.items.find(i => i.id === product.id);
-    if (existing) {
-      existing.quantity += qty;
-    } else {
-      cart.items.push({
-        id:       product.id,
-        name:     product.name,
-        price:    product.price,
-        image:    product.image,
-        quantity: qty
-      });
-    }
-    saveCart(cart);
-    showToast(`${qty} × ${product.name} added to cart`);
-  }
-
-  /*─────────────────────────────────────────────────────────
-    Toast Notification (appended once, reused each call)
-  ─────────────────────────────────────────────────────────*/
-  function showToast(msg) {
-    if (!$('#cart-toast').length) {
-      $('body').append(`
-        <div id="cart-toast"
-          class="toast align-items-center text-white bg-danger border-0 position-fixed bottom-0 end-0 m-4"
-          role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999">
-          <div class="d-flex">
-            <div class="toast-body font-alt fw-semibold fs-6"></div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto"
-              data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-        </div>`);
-    }
-    $('#cart-toast .toast-body').text(msg);
-    new bootstrap.Toast($('#cart-toast')[0], { delay: 2500 }).show();
-  }
-
-  /*─────────────────────────────────────────────────────────
-    Scroll-Triggered Animations
-  ─────────────────────────────────────────────────────────*/
+  /*── Scroll animations ────────────────────────────────────────────*/
   let ticking = false;
 
   function animateOnScroll() {
@@ -98,19 +93,15 @@ $(function () {
     }
   });
 
-  animateOnScroll(); // run once on load for above-fold elements
+  animateOnScroll();
 
-  /*─────────────────────────────────────────────────────────
-    Promo Modal (homepage phone CTA)
-  ─────────────────────────────────────────────────────────*/
+  /*── Promo modal ──────────────────────────────────────────────────*/
   $('#phoneOrderBtn').on('click', () => {
     const el = document.getElementById('promoModal');
     if (el) bootstrap.Modal.getOrCreateInstance(el).show();
   });
 
-  /*─────────────────────────────────────────────────────────
-    Menu View Toggle
-  ─────────────────────────────────────────────────────────*/
+  /*── Menu view toggle ─────────────────────────────────────────────*/
   const $menu       = $('#dynamic-menu');
   const $viewToggle = $('#view-toggle');
   const $toggleIcon = $('#toggle-icon');
@@ -129,25 +120,21 @@ $(function () {
     syncToggleIcon();
     $viewToggle.on('click', () => {
       isListView = !isListView;
-      localStorage.setItem(VIEW_KEY, isListView ? 'list' : 'grid');
+      localStorage.setItem('menuView', isListView ? 'list' : 'grid');
       syncToggleIcon();
       renderMenu();
     });
   }
 
-  /*─────────────────────────────────────────────────────────
-    Product Card (Grid View)
-  ─────────────────────────────────────────────────────────*/
+  /*── Product card (grid view) ─────────────────────────────────────*/
   function createProductCard(product, idx) {
-    const isSelected = selectedProductId === product.id;
     const $col = $('<div>')
       .addClass('col-12 col-sm-6 col-lg-4 fade-in-up')
       .css('--delay', `${idx * 60}ms`);
 
     $col.html(`
-      <div class="card h-100 ${isSelected ? 'selected-thumb' : ''}">
-        <img src="${product.image}" alt="${product.name}" loading="lazy"
-          class="card-img-top"
+      <div class="card h-100 ${selectedProductId === product.id ? 'selected-thumb' : ''}">
+        <img src="${product.image}" alt="${product.name}" loading="lazy" class="card-img-top"
           style="height:11rem;object-fit:cover;border-radius:0.875rem 0.875rem 0 0"/>
         <div class="card-body d-flex flex-column justify-content-between p-3">
           <h3 class="font-alt card-title fs-5 text-danger fw-semibold text-truncate mb-2"
@@ -172,16 +159,13 @@ $(function () {
     return $col;
   }
 
-  /*─────────────────────────────────────────────────────────
-    Product List Item (List View)
-  ─────────────────────────────────────────────────────────*/
+  /*── Product list item (list view) ───────────────────────────────*/
   function createListItem(product, idx) {
-    const isSelected = selectedProductId === product.id;
     const $li = $('<li>')
       .addClass('list-group-item d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3 py-3 fade-in-up')
       .css('--delay', `${idx * 50}ms`);
 
-    if (isSelected) $li.addClass('selected-thumb');
+    if (selectedProductId === product.id) $li.addClass('selected-thumb');
 
     $li.html(`
       <div class="d-flex align-items-start gap-3 flex-grow-1" style="min-width:0">
@@ -218,9 +202,7 @@ $(function () {
     return $li;
   }
 
-  /*─────────────────────────────────────────────────────────
-    Render Menu (called on load and on view toggle)
-  ─────────────────────────────────────────────────────────*/
+  /*── Render full menu ─────────────────────────────────────────────*/
   function renderMenu() {
     if (!$menu.length) return;
     $menu.empty();
@@ -228,11 +210,8 @@ $(function () {
     Object.entries(manualProductData).forEach(([category, products]) => {
       if (category.toLowerCase() === 'toppings') return;
 
-      const $section = $('<section>')
-        .addClass('section-special border-sliding-line p-4 mb-5');
-      $section.append(
-        $('<h3>').addClass('font-display text-danger mb-4').text(category)
-      );
+      const $section = $('<section>').addClass('section-special border-sliding-line p-4 mb-5');
+      $section.append($('<h3>').addClass('font-display text-danger mb-4').text(category));
 
       if (!isListView) {
         const $row = $('<div>').addClass('row g-4');
@@ -247,12 +226,10 @@ $(function () {
       $menu.append($section);
     });
 
-    setTimeout(animateOnScroll, 16); // allow DOM paint before triggering
+    setTimeout(animateOnScroll, 16);
   }
 
-  /*─────────────────────────────────────────────────────────
-    Product Detail Modal
-  ─────────────────────────────────────────────────────────*/
+  /*── Product modal ────────────────────────────────────────────────*/
   function openModal(product) {
     const $modal = $('#productModal');
     if (!$modal.length) return;
@@ -263,9 +240,7 @@ $(function () {
 
     $('#modal-product-ingredients').empty().append(
       (product.ingredients || '').split(',').map(s =>
-        $('<li>')
-          .addClass('bg-danger bg-opacity-10 text-danger rounded px-2 py-1 text-nowrap')
-          .text(s.trim())
+        $('<li>').addClass('bg-danger bg-opacity-10 text-danger rounded px-2 py-1 text-nowrap').text(s.trim())
       )
     );
 
@@ -298,9 +273,7 @@ $(function () {
     bootstrap.Modal.getOrCreateInstance($modal[0]).show();
   }
 
-  /*─────────────────────────────────────────────────────────
-    Cart Page Rendering
-  ─────────────────────────────────────────────────────────*/
+  /*── Cart page ────────────────────────────────────────────────────*/
   function renderCartPage() {
     const $container = $('#cart-items-container');
     const $summary   = $('#cart-summary');
@@ -364,7 +337,6 @@ $(function () {
 
     $container.empty().append($ul);
 
-    // Cart controls
     $ul.find('.cart-decrement').on('click', function () {
       updateCartQty($(this).closest('[data-id]').data('id'), -1);
     });
@@ -375,7 +347,6 @@ $(function () {
       removeCartItem($(this).data('id'));
     });
 
-    // Summary totals
     const delivery = subtotal >= 25 ? 0 : 2.99;
     const total    = subtotal + delivery;
     $('#cart-subtotal').text(`${cashSymbol}${subtotal.toFixed(2)}`);
@@ -407,9 +378,7 @@ $(function () {
     renderCartPage();
   }
 
-  /*─────────────────────────────────────────────────────────
-    Initialise
-  ─────────────────────────────────────────────────────────*/
+  /*── Init ─────────────────────────────────────────────────────────*/
   refreshCartBadge();
   if ($menu.length) renderMenu();
   renderCartPage();
