@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Your cart — Pizza Palace">
+  <title>Cart — Pizza Palace</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Orbitron:wght@700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet"/>
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="assets/css/vendor/bootstrap.min.css"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top bg-white shadow-sm py-3">
+  <div class="container">
+    <a class="navbar-brand font-display text-primary" href="index.html">Pizza Palace</a>
+    <button
+      class="navbar-toggler border-0" type="button"
+      data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+      aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+      <ul class="navbar-nav align-items-center gap-lg-3">
+        <li class="nav-item">
+          <a class="nav-link font-alt fw-semibold" href="index.html">Homepage</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link font-alt fw-semibold" href="about_us.html">About</a>
+        </li>
+        <li class="nav-item dropdown font-alt">
+          <a class="nav-link dropdown-toggle" href="#" id="menuDropdown"
+            role="button" data-bs-toggle="dropdown" aria-expanded="false">Menu</a>
+          <ul class="dropdown-menu" aria-labelledby="menuDropdown">
+            <li><a class="dropdown-item" href="menu.html">Main Menu</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-1 font-alt fw-semibold"
+            href="cart.html" aria-label="Cart">
+            <i class="bi bi-cart3"></i>
+            <span id="cart-count">Cart (0)</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Page Hero -->
+<section class="page-hero" aria-label="Cart page header">
+  <div class="container position-relative z-1">
+    <h1 class="font-display mb-2 fade-in-up">
+      <i class="bi bi-bag-heart me-2" style="font-size:0.85em"></i>Your Cart
+    </h1>
+    <p class="fade-in-up" style="--delay:120ms">Review your order before checking out</p>
+  </div>
+</section>
+
+<!-- Cart Content -->
+<main class="container py-5" role="main">
+  <div class="row g-4 g-lg-5">
+
+    <!-- ══════════════════ Items Column ══════════════════ -->
+    <div class="col-lg-8">
+      <div class="section-special p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <h3 class="font-alt text-danger mb-0 fs-5">
+            <i class="bi bi-bag me-2"></i>Order Items
+          </h3>
+          <a href="menu.html" class="btn btn-sm btn-outline-danger font-alt">
+            <i class="bi bi-plus-circle me-1"></i>Add More
+          </a>
+        </div>
+        <!-- Cart items injected by main.js -->
+        <div id="cart-items-container"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ Summary Column ══════════════════ -->
+    <div class="col-lg-4" id="cart-summary">
+      <div class="cart-summary-card p-4">
+        <h4 class="font-alt text-danger mb-4 fs-5">
+          <i class="bi bi-receipt me-2"></i>Order Summary
+        </h4>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted font-alt" style="font-size:0.82rem">Subtotal</span>
+          <span class="fw-semibold font-alt" id="cart-subtotal">£0.00</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-muted font-alt" style="font-size:0.82rem">Delivery</span>
+          <span class="fw-semibold font-alt" id="cart-delivery">£2.99</span>
+        </div>
+
+        <p id="delivery-note" class="text-muted mb-3" style="font-size:0.76rem;min-height:1.2em"></p>
+
+        <hr class="border-danger border-opacity-25 my-3">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <span class="font-alt fw-bold fs-5">Total</span>
+          <span class="font-alt fw-bold text-danger fs-4" id="cart-total">£0.00</span>
+        </div>
+
+        <button class="btn btn-danger w-100 font-alt btn-lg btn-pulse mb-2">
+          <i class="bi bi-credit-card me-2"></i>Checkout
+        </button>
+        <a href="menu.html" class="btn btn-outline-danger w-100 font-alt">
+          <i class="bi bi-arrow-left me-1"></i>Continue Shopping
+        </a>
+
+        <div class="text-center mt-3">
+          <small class="text-muted font-alt" style="font-size:0.72rem">
+            <i class="bi bi-shield-check me-1 text-success"></i>Secure checkout
+            &nbsp;&bull;&nbsp;
+            <i class="bi bi-truck me-1 text-primary"></i>Free delivery over £25
+          </small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-light border-top py-5" role="contentinfo">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-5 mb-2">
+        <h4 class="font-display text-primary fs-4 mb-2">Pizza Palace</h4>
+        <p class="text-muted mb-1 small">Serving smiles and slices since 2023.</p>
+        <p class="text-muted small">Crafted with love, one pizza at a time.</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <h6 class="text-primary fw-bold mb-3 font-alt">Follow Us</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-facebook me-1 text-primary"></i>Facebook</a></li>
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-instagram me-1 text-primary"></i>Instagram</a></li>
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-tiktok me-1 text-primary"></i>TikTok</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-md-4">
+        <h6 class="text-primary fw-bold mb-3 font-alt">Quick Links</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-1"><a href="menu.html" class="text-decoration-none text-dark">Menu</a></li>
+          <li class="mb-1"><a href="about_us.html" class="text-decoration-none text-dark">About Us</a></li>
+          <li class="mb-1"><a href="index.html" class="text-decoration-none text-dark">Homepage</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="text-center text-muted pt-4 small border-top mt-4">
+      © 2025 Pizza Palace. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<!-- jQuery first, then Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="assets/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+</html>
