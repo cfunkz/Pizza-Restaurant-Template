@@ -252,9 +252,7 @@ $(function () {
       return;
     }
 
-    const total  = calcTotal();
-    const fmt2   = (entries, lookup) =>
-      entries.filter(([, q]) => q > 0).map(([n, q]) => ({ label: (q > 1 ? `${q}× ` : '') + n, group: lookup }));
+    const total = calcTotal();
 
     const extraGroups = [
       { label: 'Toppings', items: Object.entries(state.toppings).filter(([, q]) => q > 0).map(([n, q]) => (q > 1 ? `${q}× ` : '') + n) },
