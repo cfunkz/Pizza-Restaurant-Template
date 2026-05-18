@@ -74,7 +74,6 @@ function addToCartStorage(product, qty) {
   DOM-ready
 ──────────────────────────────────────────────────────────────────────────────*/
 $(function () {
-  const $ = window.$;
   const cashSymbol = '£';
 
   // Stamp IDs onto products once (products.js has no id field)
@@ -160,10 +159,9 @@ $(function () {
           <p class="small mb-0 font-alt text-description">${p.description}</p>
         </div>
       </div>
-      <div class="d-flex flex-column align-items-end justify-content-center text-end mt-2 mt-sm-0"
-        style="width:130px;flex-shrink:0">
-        <span class="fw-bold font-alt text-danger mb-1">from ${cashSymbol}${p.price}</span>
-        <button class="btn btn-sm btn-outline-danger mt-1" aria-label="View ${p.name}">VIEW</button>
+      <div class="d-flex align-items-center gap-2 justify-content-end mt-2 mt-sm-0" style="flex-shrink:0">
+        <span class="fw-bold font-alt text-danger">from ${cashSymbol}${p.price}</span>
+        <button class="btn btn-sm btn-outline-danger" aria-label="View ${p.name}">VIEW</button>
       </div>`);
     $li.on('click', () => openModal(p));
     return $li;

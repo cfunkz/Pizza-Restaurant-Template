@@ -82,9 +82,8 @@ body {
   border: none !important;
   transition: transform 0.3s ease;
 }
-.navbar-toggler:hover            { transform: rotate(90deg); }
 .navbar-toggler[aria-expanded="true"] { transform: rotate(90deg); }
-.navbar-toggler:focus            { outline: none; box-shadow: none !important; }
+.navbar-toggler:focus                 { outline: none; box-shadow: none !important; }
 .navbar-toggler-icon {
   filter: invert(27%) sepia(100%) saturate(7486%) hue-rotate(0deg) brightness(93%) contrast(121%);
 }
@@ -538,6 +537,29 @@ footer a:hover {
 
 @keyframes loaderSpin {
   to { transform: rotate(360deg); }
+}
+
+/*──────────────────────────────────────────────────────────────────────────────
+  Touch / mobile overrides
+  Disable hover transforms on touch devices — prevents GPU layer churn
+  that causes scroll blur on iOS/Android.
+──────────────────────────────────────────────────────────────────────────────*/
+@media (hover: none) {
+  .card:hover,
+  #ratings .rating-card:hover,
+  #stats .stat-card:hover,
+  .value-item:hover,
+  #team .team-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-card);
+    border-color: var(--color-border);
+  }
+  .list-group-item:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: transparent;
+  }
+  .navbar-brand:hover { transform: none; }
 }
 
 /*──────────────────────────────────────────────────────────────────────────────
