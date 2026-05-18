@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Build your custom pizza meal — Pizza Palace">
+  <title>Meal Builder — Pizza Palace</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Orbitron:wght@700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet"/>
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="assets/css/vendor/bootstrap.min.css"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+
+  <style>
+    /* ── Step number badge ─────────────────────────── */
+    .step-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: white;
+      font-family: var(--font-alt);
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Pizza base selection card ─────────────────── */
+    .pizza-base-card {
+      cursor: pointer;
+      border: 2px solid rgba(220, 38, 38, 0.2);
+      border-radius: var(--radius-card, 0.875rem);
+      overflow: hidden;
+      transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+      position: relative;
+    }
+    .pizza-base-card:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220, 38, 38, 0.12);
+    }
+    .pizza-base-card.selected {
+      border-color: var(--color-primary) !important;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18), 0 6px 18px rgba(220, 38, 38, 0.15) !important;
+    }
+    .pizza-base-card .check-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 2;
+      background: white;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .pizza-base-card.selected .check-badge {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .pizza-base-card .card-meta {
+      padding: 0.45rem 0.5rem;
+      background: white;
+    }
+
+    /* ── Size buttons ──────────────────────────────── */
+    .size-btn {
+      min-width: 72px;
+      border-radius: 0.6rem !important;
+      transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      line-height: 1.3;
+    }
+    .size-btn.chosen {
+      background-color: var(--color-primary) !important;
+      color: white !important;
+      border-color: var(--color-primary) !important;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    }
+
+    /* ── Category filter pills ─────────────────────── */
+    .cat-btn {
+      border-radius: 50px !important;
+      font-size: 0.72rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .cat-btn.chosen {
+      background-color: var(--color-primary) !important;
+      color: white !important;
+      border-color: var(--color-primary) !important;
+    }
+
+    /* ── Toppings list rows ────────────────────────── */
+    .topping-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .topping-row:last-child { border-bottom: none; }
+
+    /* ── Summary card ──────────────────────────────── */
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: var(--font-alt);
+      font-size: 0.76rem;
+      gap: 0.5rem;
+    }
+    .summary-line .label { color: var(--color-text-grey); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .summary-section-label {
+      font-family: var(--font-alt);
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      color: var(--color-primary);
+      margin-bottom: 0.35rem;
+      margin-top: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    /* ── Quantity controls (small variant) ────────── */
+    .qty-btn-sm {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+      border-radius: 4px;
+      border: 1px solid var(--color-primary);
+      background: white;
+      color: var(--color-primary);
+      cursor: pointer;
+      transition: background-color 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qty-btn-sm:hover:not(:disabled) {
+      background: var(--color-primary);
+      color: white;
+    }
+    .qty-btn-sm:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .qty-display {
+      width: 32px;
+      text-align: center;
+      border: 1px solid var(--color-primary);
+      border-radius: 4px;
+      color: var(--color-primary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 1px 2px;
+      user-select: none;
+      background: white;
+      font-family: var(--font-alt);
+    }
+    .qty-row { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Meal item cards (sides/drinks) ────────────── */
+    .meal-item-card {
+      border: 1.5px solid rgba(220,38,38,0.2);
+      border-radius: var(--radius-card, 0.875rem);
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: white;
+    }
+    .meal-item-card:hover { border-color: var(--color-primary); }
+    .meal-item-card.has-qty {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(220,38,38,0.12);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ NAVBAR ══ -->
+<nav class="navbar navbar-expand-lg fixed-top bg-white shadow-sm py-3">
+  <div class="container">
+    <a class="navbar-brand font-display text-primary" href="index.html">Pizza Palace</a>
+    <button
+      class="navbar-toggler border-0" type="button"
+      data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+      aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+      <ul class="navbar-nav align-items-center gap-lg-3">
+        <li class="nav-item">
+          <a class="nav-link font-alt fw-semibold" href="index.html">Homepage</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link font-alt fw-semibold" href="about_us.html">About</a>
+        </li>
+        <li class="nav-item dropdown font-alt">
+          <a class="nav-link dropdown-toggle" href="#" id="menuDropdown"
+            role="button" data-bs-toggle="dropdown" aria-expanded="false">Menu</a>
+          <ul class="dropdown-menu" aria-labelledby="menuDropdown">
+            <li><a class="dropdown-item" href="menu.html">Main Menu</a></li>
+            <li><a class="dropdown-item" href="meal-builder.html">Build a Meal</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-1 font-alt fw-semibold"
+            href="cart.html" aria-label="Cart">
+            <i class="bi bi-cart3"></i>
+            <span id="cart-count">Cart (0)</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════ HERO ═════ -->
+<section class="page-hero" aria-label="Meal Builder">
+  <div class="container position-relative z-1">
+    <h1 class="font-display mb-2 fade-in-up">
+      <i class="bi bi-stars me-2" style="font-size:0.85em"></i>Build Your Meal
+    </h1>
+    <p class="fade-in-up" style="--delay:120ms">
+      Pick a base, customise with toppings, then add sides and a drink
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════ MAIN ═════ -->
+<main class="container py-5" role="main">
+  <div class="row g-4 g-lg-5 align-items-start">
+
+    <!-- ══════════ Builder Column ══════════ -->
+    <div class="col-lg-8">
+
+      <!-- STEP 1 ─ Choose Base Pizza -->
+      <div class="section-special p-4 mb-4 fade-in-up" style="--delay:0ms">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">1</span>
+          <h3 class="font-alt text-danger mb-0 fs-5">Choose Your Base Pizza</h3>
+        </div>
+
+        <!-- Category filter pills -->
+        <div class="d-flex flex-wrap gap-2 mb-3" id="cat-filters">
+          <button class="btn btn-sm btn-danger font-alt cat-btn chosen" data-cat="all">All</button>
+          <button class="btn btn-sm btn-outline-danger font-alt cat-btn" data-cat="Classic Pizzas">Classic</button>
+          <button class="btn btn-sm btn-outline-danger font-alt cat-btn" data-cat="Specialty Pizzas">Specialty</button>
+          <button class="btn btn-sm btn-outline-danger font-alt cat-btn" data-cat="Veggie Pizzas">Veggie</button>
+          <button class="btn btn-sm btn-outline-danger font-alt cat-btn" data-cat="Meat Lovers">Meat</button>
+        </div>
+
+        <!-- Pizza card grid -->
+        <div class="row g-3" id="pizza-grid"></div>
+      </div>
+
+      <!-- STEP 2 ─ Choose Size -->
+      <div class="section-special p-4 mb-4 fade-in-up" style="--delay:80ms">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">2</span>
+          <h3 class="font-alt text-danger mb-0 fs-5">Choose Your Size</h3>
+        </div>
+        <div class="d-flex flex-wrap gap-2" id="size-btns">
+          <button class="btn btn-danger font-alt size-btn chosen" data-size="S" data-extra="0">
+            S<br><small class="fw-normal opacity-75">Included</small>
+          </button>
+          <button class="btn btn-outline-danger font-alt size-btn" data-size="M" data-extra="2">
+            M<br><small class="fw-normal opacity-75">+£2.00</small>
+          </button>
+          <button class="btn btn-outline-danger font-alt size-btn" data-size="L" data-extra="4">
+            L<br><small class="fw-normal opacity-75">+£4.00</small>
+          </button>
+          <button class="btn btn-outline-danger font-alt size-btn" data-size="XL" data-extra="6">
+            XL<br><small class="fw-normal opacity-75">+£6.00</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3 ─ Extra Toppings -->
+      <div class="section-special border-sliding-line p-4 mb-4 fade-in-up" style="--delay:160ms">
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <span class="step-badge">3</span>
+          <div class="flex-grow-1">
+            <h3 class="font-alt text-danger mb-0 fs-5">Extra Toppings</h3>
+            <small class="text-muted" style="font-family:var(--font-alt);font-size:0.7rem">
+              Optional — up to 6 extra toppings
+            </small>
+          </div>
+          <span class="badge bg-danger font-alt px-2 py-1" id="topping-badge"
+            style="font-size:0.72rem">0 / 6</span>
+        </div>
+
+        <!-- Toppings in a responsive 2-col grid -->
+        <div class="row g-0 mt-3" id="toppings-list"></div>
+      </div>
+
+      <!-- STEP 4 ─ Make It a Meal -->
+      <div class="section-special border-sliding-line p-4 mb-4 fade-in-up" style="--delay:240ms">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">4</span>
+          <div>
+            <h3 class="font-alt text-danger mb-0 fs-5">Make It a Meal</h3>
+            <small class="text-muted" style="font-family:var(--font-alt);font-size:0.7rem">
+              Optional — add sides &amp; drinks
+            </small>
+          </div>
+        </div>
+
+        <h6 class="font-alt text-danger mb-3" style="font-size:0.8rem;letter-spacing:0.05em">
+          <i class="bi bi-cup-hot me-1"></i>SIDES
+        </h6>
+        <div class="row g-3 mb-4" id="sides-grid"></div>
+
+        <h6 class="font-alt text-danger mb-3" style="font-size:0.8rem;letter-spacing:0.05em">
+          <i class="bi bi-cup-straw me-1"></i>DRINKS
+        </h6>
+        <div class="row g-3" id="drinks-grid"></div>
+      </div>
+
+    </div><!-- /builder col -->
+
+    <!-- ══════════ Summary Column ══════════ -->
+    <div class="col-lg-4">
+      <div class="cart-summary-card p-4" id="meal-summary">
+        <h4 class="font-alt text-danger mb-3 fs-5">
+          <i class="bi bi-receipt me-2"></i>Your Meal
+        </h4>
+
+        <div id="summary-body">
+          <div class="text-center py-4" id="summary-empty">
+            <i class="bi bi-pizza" style="font-size:2.5rem;color:#dee2e6"></i>
+            <p class="text-muted mt-2 mb-0" style="font-family:var(--font-alt);font-size:0.78rem">
+              Select a base pizza to begin
+            </p>
+          </div>
+        </div>
+
+        <hr class="border-danger border-opacity-25 my-3">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <span class="font-alt fw-bold fs-5">Total</span>
+          <span class="font-alt fw-bold text-danger fs-4" id="meal-total">£0.00</span>
+        </div>
+
+        <button class="btn btn-danger w-100 font-alt btn-lg btn-pulse mb-2" id="add-meal-btn">
+          <i class="bi bi-cart-plus me-2"></i>Add to Cart
+        </button>
+        <a href="menu.html" class="btn btn-outline-danger w-100 font-alt">
+          <i class="bi bi-list-ul me-1"></i>Browse Full Menu
+        </a>
+
+        <div class="text-center mt-3">
+          <small class="text-muted font-alt" style="font-size:0.7rem">
+            <i class="bi bi-shield-check me-1 text-success"></i>Secure &nbsp;&bull;&nbsp;
+            <i class="bi bi-truck me-1 text-primary"></i>Free delivery over £25
+          </small>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row -->
+</main>
+
+<!-- ══════════════════════════════════════ FOOTER ═══ -->
+<footer class="bg-light border-top py-5" role="contentinfo">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-5 mb-2">
+        <h4 class="font-display text-primary fs-4 mb-2">Pizza Palace</h4>
+        <p class="text-muted mb-1 small">Serving smiles and slices since 2023.</p>
+        <p class="text-muted small">Crafted with love, one pizza at a time.</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <h6 class="text-primary fw-bold mb-3 font-alt">Follow Us</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-facebook me-1 text-primary"></i>Facebook</a></li>
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-instagram me-1 text-primary"></i>Instagram</a></li>
+          <li class="mb-1"><a href="#" class="text-decoration-none text-dark"><i class="bi bi-tiktok me-1 text-primary"></i>TikTok</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-md-4">
+        <h6 class="text-primary fw-bold mb-3 font-alt">Quick Links</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-1"><a href="menu.html" class="text-decoration-none text-dark">Main Menu</a></li>
+          <li class="mb-1"><a href="meal-builder.html" class="text-decoration-none text-dark">Build a Meal</a></li>
+          <li class="mb-1"><a href="cart.html" class="text-decoration-none text-dark">Cart</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="text-center text-muted pt-4 small border-top mt-4">
+      © 2025 Pizza Palace. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════ SCRIPTS ══ -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="assets/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="assets/js/products.js"></script>
+<script src="assets/js/main.js"></script>
+
+<script>
+$(function () {
+  /*──────────────────────────────────────────────
+    Constants & Data
+  ──────────────────────────────────────────────*/
+  const cashSymbol  = '£';
+  const CART_KEY    = 'pizzaCart';
+  const PIZZA_CATS  = ['Classic Pizzas', 'Specialty Pizzas', 'Veggie Pizzas', 'Meat Lovers'];
+
+  function fmt(p)  { return `${cashSymbol}${parseFloat(p).toFixed(2)}`; }
+  function makeId(n) { return n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+  // Build flat arrays from manualProductData
+  const allPizzas   = PIZZA_CATS.flatMap(cat =>
+    (manualProductData[cat] || []).map(p => ({ ...p, category: cat, id: p.id || makeId(p.name) }))
+  );
+  const allToppings = manualProductData['Toppings'] || [];
+  const allSides    = (manualProductData['Sides']   || []).map(p => ({ ...p, id: p.id || makeId(p.name) }));
+  const allDrinks   = (manualProductData['Drinks']  || []).map(p => ({ ...p, id: p.id || makeId(p.name) }));
+
+  /*──────────────────────────────────────────────
+    State
+  ──────────────────────────────────────────────*/
+  const state = {
+    base:       null,   // full product object
+    size:       'S',
+    sizeExtra:  0,
+    toppings:   {},     // { name: qty }
+    sides:      {},     // { name: qty }
+    drinks:     {},     // { name: qty }
+  };
+
+  /*──────────────────────────────────────────────
+    Toast (reuse main.js cart-toast element/pattern)
+  ──────────────────────────────────────────────*/
+  function toast(msg) {
+    const id = 'builder-toast';
+    if (!$(`#${id}`).length) {
+      $('body').append(`
+        <div id="${id}"
+          class="toast align-items-center text-white bg-danger border-0 position-fixed bottom-0 end-0 m-4"
+          role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999">
+          <div class="d-flex">
+            <div class="toast-body font-alt fw-semibold fs-6"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast"></button>
+          </div>
+        </div>`);
+    }
+    $(`#${id} .toast-body`).text(msg);
+    new bootstrap.Toast(document.getElementById(id), { delay: 2500 }).show();
+  }
+
+  /*──────────────────────────────────────────────
+    Render: Pizza Base Grid
+  ──────────────────────────────────────────────*/
+  let activeFilter = 'all';
+
+  function renderPizzaGrid(filter) {
+    activeFilter = filter;
+    const $grid   = $('#pizza-grid');
+    const pizzas  = filter === 'all' ? allPizzas : allPizzas.filter(p => p.category === filter);
+    $grid.empty();
+
+    pizzas.forEach((pizza) => {
+      const sel = state.base && state.base.id === pizza.id;
+      const $col = $('<div>').addClass('col-6 col-sm-4 col-md-3');
+      $col.html(`
+        <div class="pizza-base-card${sel ? ' selected' : ''}" data-id="${pizza.id}">
+          <div class="check-badge">
+            <i class="bi bi-check-circle-fill text-danger" style="font-size:1rem"></i>
+          </div>
+          <img src="${pizza.image}" alt="${pizza.name}"
+            style="height:90px;width:100%;object-fit:cover;display:block"/>
+          <div class="card-meta">
+            <div class="font-alt text-danger text-truncate" style="font-size:0.7rem;font-weight:700"
+              title="${pizza.name}">${pizza.name}</div>
+            <div class="font-alt text-muted" style="font-size:0.66rem">from ${fmt(pizza.price)}</div>
+          </div>
+        </div>`);
+      $grid.append($col);
+    });
+
+    $grid.find('.pizza-base-card').on('click', function () {
+      const id    = $(this).data('id');
+      state.base  = allPizzas.find(p => p.id === id) || null;
+      renderPizzaGrid(activeFilter);
+      renderSummary();
+    });
+  }
+
+  // Category filter pill clicks
+  $('#cat-filters').on('click', '.cat-btn', function () {
+    const cat = $(this).data('cat');
+    $('#cat-filters .cat-btn').removeClass('chosen btn-danger').addClass('btn-outline-danger');
+    $(this).addClass('chosen btn-danger').removeClass('btn-outline-danger');
+    renderPizzaGrid(cat);
+  });
+
+  /*──────────────────────────────────────────────
+    Render: Size Buttons
+  ──────────────────────────────────────────────*/
+  $('#size-btns').on('click', '.size-btn', function () {
+    state.size      = $(this).data('size');
+    state.sizeExtra = parseFloat($(this).data('extra')) || 0;
+    $('#size-btns .size-btn').removeClass('chosen btn-danger').addClass('btn-outline-danger');
+    $(this).addClass('chosen btn-danger').removeClass('btn-outline-danger');
+    renderSummary();
+  });
+
+  /*──────────────────────────────────────────────
+    Render: Extra Toppings
+  ──────────────────────────────────────────────*/
+  function toppingTotal() {
+    return Object.values(state.toppings).reduce((a, b) => a + b, 0);
+  }
+
+  function renderToppings() {
+    const $list = $('#toppings-list');
+    $list.empty();
+
+    allToppings.forEach(t => {
+      const qty  = state.toppings[t.name] || 0;
+      const $col = $('<div>').addClass('col-12 col-sm-6');
+      $col.html(`
+        <div class="topping-row">
+          <div style="min-width:0;margin-right:0.5rem">
+            <span class="font-alt" style="font-size:0.8rem">${t.name}</span>
+            <span class="text-muted ms-1" style="font-size:0.72rem;font-family:var(--font-alt)">${fmt(t.price)}</span>
+          </div>
+          <div class="qty-row" data-topping="${t.name}">
+            <button class="qty-btn-sm t-dec" aria-label="Remove ${t.name}"
+              ${qty === 0 ? 'disabled' : ''}>−</button>
+            <span class="qty-display">${qty}</span>
+            <button class="qty-btn-sm t-inc" aria-label="Add ${t.name}">+</button>
+          </div>
+        </div>`);
+      $list.append($col);
+    });
+
+    syncToppingBadge();
+  }
+
+  function syncToppingBadge() {
+    const n = toppingTotal();
+    $('#topping-badge').text(`${n} / 6`);
+    // Disable all inc buttons when at max
+    $('#toppings-list .t-inc').prop('disabled', n >= 6);
+    // Keep per-row dec buttons in sync
+    $('#toppings-list [data-topping]').each(function () {
+      const name = $(this).data('topping');
+      $(this).find('.t-dec').prop('disabled', (state.toppings[name] || 0) === 0);
+    });
+  }
+
+  // Topping +/- via delegation
+  $('#toppings-list').on('click', '.t-inc, .t-dec', function () {
+    const name    = $(this).closest('[data-topping]').data('topping');
+    const isInc   = $(this).hasClass('t-inc');
+    let qty       = state.toppings[name] || 0;
+
+    if (isInc) {
+      if (toppingTotal() >= 6) { toast('Maximum 6 extra toppings allowed'); return; }
+      qty++;
+    } else {
+      if (qty <= 0) return;
+      qty--;
+    }
+
+    if (qty === 0) delete state.toppings[name];
+    else state.toppings[name] = qty;
+
+    // Update just this row's display (no full re-render needed)
+    const $row = $(this).closest('[data-topping]');
+    $row.find('.qty-display').text(qty);
+    $row.find('.t-dec').prop('disabled', qty === 0);
+    syncToppingBadge();
+    renderSummary();
+  });
+
+  /*──────────────────────────────────────────────
+    Render: Sides / Drinks grids
+  ──────────────────────────────────────────────*/
+  function renderMealGrid(items, $container, stateKey) {
+    $container.empty();
+    items.forEach(item => {
+      const qty  = state[stateKey][item.name] || 0;
+      const $col = $('<div>').addClass('col-6 col-md-4');
+      $col.html(`
+        <div class="meal-item-card${qty > 0 ? ' has-qty' : ''}">
+          <img src="${item.image}" alt="${item.name}"
+            style="height:80px;width:100%;object-fit:cover;display:block"/>
+          <div class="p-2 text-center">
+            <div class="font-alt text-danger text-truncate mb-0" style="font-size:0.7rem;font-weight:700"
+              title="${item.name}">${item.name}</div>
+            <div class="font-alt text-muted mb-2" style="font-size:0.66rem">${fmt(item.price)}</div>
+            <div class="qty-row justify-content-center" data-item="${item.name}" data-key="${stateKey}">
+              <button class="qty-btn-sm mi-dec" ${qty === 0 ? 'disabled' : ''} aria-label="Remove">−</button>
+              <span class="qty-display">${qty}</span>
+              <button class="qty-btn-sm mi-inc" aria-label="Add">+</button>
+            </div>
+          </div>
+        </div>`);
+
+      // Bind controls
+      $col.find('.mi-inc, .mi-dec').on('click', function () {
+        const n   = $(this).closest('[data-item]').data('item');
+        const k   = $(this).closest('[data-key]').data('key');
+        let q     = state[k][n] || 0;
+
+        if ($(this).hasClass('mi-inc'))  q++;
+        else if (q > 0) q--;
+
+        if (q === 0) delete state[k][n]; else state[k][n] = q;
+
+        // Update this card's display inline
+        const $qRow = $(this).closest('[data-item]');
+        $qRow.find('.qty-display').text(q);
+        $qRow.find('.mi-dec').prop('disabled', q === 0);
+        $qRow.closest('.meal-item-card').toggleClass('has-qty', q > 0);
+        renderSummary();
+      });
+
+      $container.append($col);
+    });
+  }
+
+  /*──────────────────────────────────────────────
+    Render: Summary Panel
+  ──────────────────────────────────────────────*/
+  function calcTotal() {
+    let t = 0;
+    if (state.base) t += parseFloat(state.base.price);
+    t += state.sizeExtra;
+    allToppings.forEach(tp => { t += (state.toppings[tp.name] || 0) * parseFloat(tp.price); });
+    allSides.forEach(s   => { t += (state.sides[s.name]    || 0) * parseFloat(s.price);  });
+    allDrinks.forEach(d  => { t += (state.drinks[d.name]   || 0) * parseFloat(d.price);  });
+    return t;
+  }
+
+  function renderSummary() {
+    const total    = calcTotal();
+    const $body    = $('#summary-body');
+
+    if (!state.base) {
+      $body.html(`
+        <div class="text-center py-4" id="summary-empty">
+          <i class="bi bi-pizza" style="font-size:2.5rem;color:#dee2e6"></i>
+          <p class="text-muted mt-2 mb-0" style="font-family:var(--font-alt);font-size:0.78rem">
+            Select a base pizza to begin
+          </p>
+        </div>`);
+      $('#meal-total').text(fmt(0));
+      return;
+    }
+
+    let html = '';
+
+    // Base + size line
+    html += `<div class="d-flex align-items-center gap-2 mb-2">
+      <img src="${state.base.image}" width="40" height="40"
+        class="rounded" style="object-fit:cover;flex-shrink:0"/>
+      <div style="min-width:0;flex:1">
+        <div class="font-alt fw-semibold text-danger text-truncate"
+          style="font-size:0.78rem">${state.base.name}</div>
+        <div class="summary-line" style="margin-top:1px">
+          <span class="label">Size: ${state.size}</span>
+          <span class="fw-semibold">${fmt(parseFloat(state.base.price) + state.sizeExtra)}</span>
+        </div>
+      </div>
+    </div>`;
+
+    // Toppings
+    const tops = Object.entries(state.toppings).filter(([, q]) => q > 0);
+    if (tops.length) {
+      html += `<div class="summary-section-label">Extras</div>`;
+      tops.forEach(([name, qty]) => {
+        const tp   = allToppings.find(t => t.name === name);
+        const cost = tp ? qty * parseFloat(tp.price) : 0;
+        html += `<div class="summary-line">
+          <span class="label">${qty > 1 ? qty + '× ' : ''}${name}</span>
+          <span class="fw-semibold">${fmt(cost)}</span>
+        </div>`;
+      });
+    }
+
+    // Sides
+    const sides = Object.entries(state.sides).filter(([, q]) => q > 0);
+    if (sides.length) {
+      html += `<div class="summary-section-label">Sides</div>`;
+      sides.forEach(([name, qty]) => {
+        const s    = allSides.find(x => x.name === name);
+        const cost = s ? qty * parseFloat(s.price) : 0;
+        html += `<div class="summary-line">
+          <span class="label">${qty > 1 ? qty + '× ' : ''}${name}</span>
+          <span class="fw-semibold">${fmt(cost)}</span>
+        </div>`;
+      });
+    }
+
+    // Drinks
+    const drinks = Object.entries(state.drinks).filter(([, q]) => q > 0);
+    if (drinks.length) {
+      html += `<div class="summary-section-label">Drinks</div>`;
+      drinks.forEach(([name, qty]) => {
+        const d    = allDrinks.find(x => x.name === name);
+        const cost = d ? qty * parseFloat(d.price) : 0;
+        html += `<div class="summary-line">
+          <span class="label">${qty > 1 ? qty + '× ' : ''}${name}</span>
+          <span class="fw-semibold">${fmt(cost)}</span>
+        </div>`;
+      });
+    }
+
+    $body.html(html);
+    $('#meal-total').text(fmt(total));
+  }
+
+  /*──────────────────────────────────────────────
+    Add to Cart
+  ──────────────────────────────────────────────*/
+  $('#add-meal-btn').on('click', function () {
+    if (!state.base) {
+      toast('Please select a base pizza first!');
+      document.getElementById('pizza-grid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const total = calcTotal();
+
+    // Build human-readable name
+    const extras = [
+      ...Object.entries(state.toppings).filter(([, q]) => q > 0)
+               .map(([n, q]) => (q > 1 ? `${q}× ` : '') + n),
+      ...Object.entries(state.sides).filter(([, q]) => q > 0)
+               .map(([n, q]) => (q > 1 ? `${q}× ` : '') + n),
+      ...Object.entries(state.drinks).filter(([, q]) => q > 0)
+               .map(([n, q]) => (q > 1 ? `${q}× ` : '') + n),
+    ];
+    const itemName = `${state.base.name} (${state.size})` +
+      (extras.length ? ' + ' + extras.join(', ') : '');
+
+    // Push into pizzaCart (compatible with cart.html)
+    const cart = JSON.parse(localStorage.getItem(CART_KEY)) || { items: [] };
+    cart.items.push({
+      id:       'meal-' + Date.now(),
+      name:     itemName,
+      price:    total.toFixed(2),
+      image:    state.base.image,
+      quantity: 1,
+    });
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+
+    // Refresh badge across the page
+    const badge = cart.items.reduce((s, i) => s + i.quantity, 0);
+    $('#cart-count').text(`Cart (${badge})`);
+
+    toast(`Meal added to cart! (${fmt(total)})`);
+
+    // Reset state
+    state.base      = null;
+    state.size      = 'S';
+    state.sizeExtra = 0;
+    state.toppings  = {};
+    state.sides     = {};
+    state.drinks    = {};
+
+    // Re-render all sections
+    renderPizzaGrid(activeFilter);
+    renderToppings();
+    renderMealGrid(allSides,  $('#sides-grid'),  'sides');
+    renderMealGrid(allDrinks, $('#drinks-grid'), 'drinks');
+    // Reset size to S
+    $('#size-btns .size-btn').removeClass('chosen btn-danger').addClass('btn-outline-danger');
+    $('#size-btns .size-btn').first().addClass('chosen btn-danger').removeClass('btn-outline-danger');
+    renderSummary();
+  });
+
+  /*──────────────────────────────────────────────
+    Initialise
+  ──────────────────────────────────────────────*/
+  renderPizzaGrid('all');
+  renderToppings();
+  renderMealGrid(allSides,  $('#sides-grid'),  'sides');
+  renderMealGrid(allDrinks, $('#drinks-grid'), 'drinks');
+  renderSummary();
+});
+</script>
+
+</body>
+</html>
